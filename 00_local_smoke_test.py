@@ -45,8 +45,13 @@ print()
 # Pošto ove skripte žive van efficientvit repoa, cd u repo nije dovoljan —
 # putanja se mora dodati eksplicitno.
 _REPO = os.environ.get("EFFICIENTVIT_ROOT", "/workspace/efficientvit")
-if os.path.isdir(_REPO) and _REPO not in sys.path:
-    sys.path.insert(0, _REPO)
+if os.path.isdir(_REPO):
+    if _REPO not in sys.path:
+        sys.path.insert(0, _REPO)
+    # create_efficientvit_sam_model gradi RELATIVNU putanju do checkpoint-a
+    # ("assets/checkpoints/..."), koja se razrešava u odnosu na radni
+    # direktorijum. Ceo repo pretpostavlja da se pokreće iz svog root-a.
+    os.chdir(_REPO)
 
 # --- model -----------------------------------------------------------------
 try:
@@ -120,8 +125,11 @@ try:
     ax[1].add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1,
                                   fill=False, edgecolor="yellow", lw=1.5))
     plt.tight_layout()
-    plt.savefig("smoke_test_result.png", dpi=110)
-    print("Wrote smoke_test_result.png")
+    # Apsolutna putanja jer smo se prebacili u repo direktorijum iznad.
+    _out = os.path.join(os.path.dirname(_REPO), "logs", "smoke_test_result.png")
+    os.makedirs(os.path.dirname(_out), exist_ok=True)
+    plt.savefig(_out, dpi=110)
+    print(f"Wrote {_out}")
 except ImportError:
     print("(matplotlib not installed — bez vizualizacije)")
 
