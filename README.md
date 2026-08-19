@@ -106,6 +106,28 @@ No GPU needed — run this on your laptop as soon as the zip is extracted. The a
 python 06_inspect_marvel.py /path/to/extracted/marvel
 ```
 
+## Troubleshooting
+
+**`_pickle.UnpicklingError: Weights only load failed`** when loading a checkpoint.
+
+PyTorch 2.6 flipped the default of `weights_only` in `torch.load` from `False` to
+`True`. Checkpoints published before that change can fail to load on newer torch.
+Since the RunPod images now ship torch 2.8, this is likely.
+
+Fix without editing the repo — set it once per session, before any script:
+
+```bash
+export TORCH_FORCE_WEIGHTS_ONLY_LOAD=0
+```
+
+Only do this for checkpoints you trust; `weights_only=True` exists because
+unpickling arbitrary files can execute arbitrary code. The EfficientViT-SAM
+weights come from the authors' official HuggingFace repo.
+
+**torch replaced during setup.** `01_setup_pod.sh` filters torch, torchvision and
+torchaudio out of `requirements.txt` so the image's CUDA-matched build survives,
+and fails loudly if CUDA stops being visible afterwards.
+
 ## Still not written, deliberately
 
 Log parsing, the results table, and the MARVEL dataloader all depend on formats nobody has seen yet. Writing them against guesses produces code you throw away. They become quick once you have one real log and the output of `06`.

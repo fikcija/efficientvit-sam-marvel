@@ -38,9 +38,26 @@ echo "Repo commit: $(git rev-parse --short HEAD)" #podsetnik: dodati u izveštaj
 echo
 
 echo "=== Installing dependencies ==="
+# RunPod image dolazi sa torch-om build-ovanim za tačno taj CUDA driver. Ako
+# repo pinuje drugu verziju, pip će je tiho zameniti i rezultat možda više
+# neće videti GPU. Zato se torch/torchvision/torchaudio filtriraju iz
+# requirements.txt i ostaje ono što image nudi.
+TORCH_BEFORE=$(python -c "import torch; print(torch.__version__)" 2>/dev/null)
+
 pip install --quiet --upgrade pip
-pip install -r requirements.txt
-pip install --quiet pycocotools   # potrebno za COCO evaluaciju
+grep -viE '^[[:space:]]*(torch|torchvision|torchaudio)([=<>!~[:space:]]|$)' \
+    requirements.txt > /tmp/requirements_no_torch.txt
+echo "  (preskačem torch/torchvision/torchaudio — koristi se verzija iz image-a)"
+pip install -r /tmp/requirements_no_torch.txt
+pip install --quiet pycocotools lvis   # potrebno za COCO i LVIS evaluaciju
+
+TORCH_AFTER=$(python -c "import torch; print(torch.__version__)" 2>/dev/null)
+if [ "${TORCH_BEFORE}" != "${TORCH_AFTER}" ]; then
+    echo
+    echo "  UPOZORENJE: torch je promenjen sa ${TORCH_BEFORE} na ${TORCH_AFTER}."
+fi
+python -c "import torch; assert torch.cuda.is_available()" \
+    || { echo "GREŠKA: torch više ne vidi GPU."; exit 1; }
 
 echo
 echo "=== Environment summary ===" #podsetnik: dodati u izveštaj

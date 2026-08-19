@@ -17,6 +17,7 @@ Pokrenuti unutar kloniranog repozitorijuma da se resolv-uju importi:
 
 """
 
+import os
 import sys
 import time
 
@@ -38,13 +39,23 @@ if DEVICE == "cpu":
     print("  (no GPU acceleration — expect this to be slow but it should still work)")
 print()
 
+# --- repo na import putanji ------------------------------------------------
+# Kada se skripta pokrene kao "python /putanja/do/skripte.py", Python na
+# sys.path stavlja direktorijum SKRIPTE, a ne trenutni radni direktorijum.
+# Pošto ove skripte žive van efficientvit repoa, cd u repo nije dovoljan —
+# putanja se mora dodati eksplicitno.
+_REPO = os.environ.get("EFFICIENTVIT_ROOT", "/workspace/efficientvit")
+if os.path.isdir(_REPO) and _REPO not in sys.path:
+    sys.path.insert(0, _REPO)
+
 # --- model -----------------------------------------------------------------
 try:
     from efficientvit.sam_model_zoo import create_efficientvit_sam_model
     from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor
 except ImportError:
     sys.exit(
-        "Could not import efficientvit.\n"
+        f"Ne mogu da importujem efficientvit (tražen u {_REPO}).\n"
+        "Ako je repo negde drugde:  export EFFICIENTVIT_ROOT=/putanja/do/efficientvit"
     )
 
 # l0: 34.8M parametara, 35 GMACs, input dimeznacoja 512x512.

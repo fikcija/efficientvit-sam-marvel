@@ -31,6 +31,7 @@ Pokrenuti unutar kloniranog repozitorijuma kako bi se importi rezolovali.
 import argparse
 import csv
 import os
+import sys
 import time
 
 import numpy as np
@@ -38,8 +39,14 @@ import torch
 from PIL import Image
 from pycocotools.coco import COCO
 
-from efficientvit.sam_model_zoo import create_efficientvit_sam_model
-from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor
+# Python na sys.path stavlja direktorijum SKRIPTE, a ne radni direktorijum,
+# pa se putanja do efficientvit repoa mora dodati eksplicitno.
+_REPO = os.environ.get("EFFICIENTVIT_ROOT", "/workspace/efficientvit")
+if os.path.isdir(_REPO) and _REPO not in sys.path:
+    sys.path.insert(0, _REPO)
+
+from efficientvit.sam_model_zoo import create_efficientvit_sam_model  # noqa: E402
+from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor  # noqa: E402
 
 # COCO area thresholds: small < 32^2, large > 96^2
 SMALL, LARGE = 32 ** 2, 96 ** 2

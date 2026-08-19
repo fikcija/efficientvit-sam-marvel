@@ -31,13 +31,20 @@ import argparse
 import csv
 import os
 import statistics
+import sys
 import time
 
 import numpy as np
 import torch
 
-from efficientvit.sam_model_zoo import create_efficientvit_sam_model
-from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor
+# Python na sys.path stavlja direktorijum SKRIPTE, a ne radni direktorijum,
+# pa se putanja do efficientvit repoa mora dodati eksplicitno.
+_REPO = os.environ.get("EFFICIENTVIT_ROOT", "/workspace/efficientvit")
+if os.path.isdir(_REPO) and _REPO not in sys.path:
+    sys.path.insert(0, _REPO)
+
+from efficientvit.sam_model_zoo import create_efficientvit_sam_model  # noqa: E402
+from efficientvit.models.efficientvit.sam import EfficientViTSamPredictor  # noqa: E402
 
 # U Tabeli 1 — A100, TensorRT, fp16, batch 16. Naši rezultati će biti sporiji jer ne koristimo TensorRT niti fp16, i batch size je 1.;
 # Stoje tu da bi ta razlika bila jasna, a ne da bi se reprodukovali. 
