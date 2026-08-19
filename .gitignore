@@ -1,0 +1,16 @@
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.venv/
+
+logs/
+*.csv
+*.log
+smoke_test_result.png
+
+*.pt
+*.pth
+*.zip
+
+notes/
