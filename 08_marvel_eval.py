@@ -117,6 +117,8 @@ def main():
     ap.add_argument("--jitter", type=float, default=0.0,
                     help="box scale perturbation, e.g. 0.1 or -0.1")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--force", action="store_true",
+                    help="ponovo pokreni čak i ako izlazni CSV postoji")
     args = ap.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -128,6 +130,13 @@ def main():
         tag += f"_jitter{args.jitter:+.2f}"
     out_path = args.out or f"/workspace/logs/marvel_{tag}.csv"
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    # Preskoči ako rezultat već postoji. Bez ovoga bi ponovno pokretanje petlje
+    # posle prekida ponovilo i runove koji su završeni — kod pet varijanti to su
+    # dva izgubljena sata.
+    if os.path.exists(out_path) and not args.force:
+        print(f"{out_path} već postoji — preskačem. (--force za ponovno pokretanje)")
+        return
 
     print(f"model  : {args.model}")
     print(f"device : {device}")
