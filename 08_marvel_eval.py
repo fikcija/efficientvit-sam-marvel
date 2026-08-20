@@ -203,6 +203,10 @@ def main():
                     "clip": clip.name,
                     "frame": idx,
                     "label": label,
+                    # Koordinate okvira se čuvaju da bi 09_visualize_marvel.py
+                    # mogao tačno da rekonstruiše prompt, bez pogađanja.
+                    "x1": round(x1, 1), "y1": round(y1, 1),
+                    "x2": round(x2, 1), "y2": round(y2, 1),
                     "box_area_px": round(box_area, 1),
                     # šta enkoder vidi na 512 (L) i 1024 (XL), tj. koliki je box kada se frejm smanji na 512 ili 1024
                     "box_area_at_512": round(box_area * (512 / max(W, H)) ** 2, 1),
