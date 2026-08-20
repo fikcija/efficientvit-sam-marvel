@@ -68,6 +68,10 @@ def main():
                     choices=["fill_ratio", "containment", "pred_iou"])
     ap.add_argument("--label", default=None, help="filtriraj po klasi")
     ap.add_argument("--n", type=int, default=8)
+    ap.add_argument("--min-gap", type=int, default=150,
+                    help="minimalni razmak u frejmovima izmedju primera iz istog snimka")
+    ap.add_argument("--one-per-clip", action="store_true",
+                    help="najvise jedan primer po snimku")
     ap.add_argument("--out", default="/workspace/logs/vis")
     args = ap.parse_args()
 
@@ -87,7 +91,21 @@ def main():
     else:
         rows.sort(key=lambda r: float(r[args.metric]),
                   reverse=(args.mode == "best"))
-        sel = rows[:args.n]
+        # Susedni frejmovi su skoro identični, pa sortiranje po metrici vraća
+        # isti trenutak više puta. Za izveštaj su potrebni RAZLIČITI primeri,
+        # pa se zahteva minimalni razmak u frejmovima unutar istog snimka.
+        sel, taken = [], {}
+        for r in rows:
+            key = r["clip"]
+            f = int(r["frame"])
+            if any(abs(f - g) < args.min_gap for g in taken.get(key, [])):
+                continue
+            if args.one_per_clip and key in taken:
+                continue
+            taken.setdefault(key, []).append(f)
+            sel.append(r)
+            if len(sel) >= args.n:
+                break
 
     model_name = args.model or (
         "efficientvit-sam-"
